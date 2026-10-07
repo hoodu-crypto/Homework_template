@@ -1,15 +1,17 @@
 // ==========================================
-// 🍓 DIET CHECK CALENDAR
-// 2026년 10월 ~ 12월
+// DIET CHECK CALENDAR
+// 2026 October - December
 // ==========================================
 
 
-// ---------- 색상 ----------
+// ---------- COLORS ----------
+
 const COLORS = {
-  background: "#FFF8F5",  // 奶白
-  pink: "#F4B6C7",        // 奶粉色
-  yellow: "#F7E3A6",      // 奶黄色
-  blue: "#B9DDE8",        // 奶蓝色
+  background: "#FFF8F5",
+
+  pink: "#F4B6C7",
+  yellow: "#F7E3A6",
+  blue: "#B9DDE8",
 
   white: "#FFFDFB",
   text: "#6D6064",
@@ -17,7 +19,8 @@ const COLORS = {
 };
 
 
-// ---------- 3个月 ----------
+// ---------- MONTHS ----------
+
 const months = [
   {
     year: 2026,
@@ -42,7 +45,8 @@ const months = [
 ];
 
 
-// ---------- 星期 ----------
+// ---------- WEEK ----------
+
 const weekNames = [
   "SUN",
   "MON",
@@ -54,11 +58,13 @@ const weekNames = [
 ];
 
 
-// ---------- 打卡记录 ----------
+// ---------- CHECK DATA ----------
+
 let checkedDays = {};
 
 
-// ---------- 所有日期按钮 ----------
+// ---------- BUTTON DATA ----------
+
 let dayButtons = [];
 
 
@@ -68,10 +74,14 @@ let dayButtons = [];
 
 function setup() {
 
-  createCanvas(
+  let canvas = createCanvas(
     getCanvasWidth(),
     getCanvasHeight()
   );
+
+  canvas.style("display", "block");
+  canvas.style("margin", "0 auto");
+  canvas.style("touch-action", "pan-y");
 
   loadCheckData();
 
@@ -104,13 +114,15 @@ function draw() {
 
 
 // ==========================================
-// 绘制月份
+// DRAW MONTH
 // ==========================================
 
 function drawMonth(info, startY) {
 
-  let contentWidth =
-    min(width - 28, 680);
+  let contentWidth = min(
+    width - 28,
+    680
+  );
 
   let left =
     (width - contentWidth) / 2;
@@ -119,9 +131,7 @@ function drawMonth(info, startY) {
     contentWidth / 7;
 
 
-  // ----------------------------------------
-  // 月份标题
-  // ----------------------------------------
+  // ---------- MONTH TITLE ----------
 
   fill(COLORS.text);
 
@@ -140,9 +150,7 @@ function drawMonth(info, startY) {
   textStyle(NORMAL);
 
 
-  // ----------------------------------------
-  // 星期
-  // ----------------------------------------
+  // ---------- WEEK ----------
 
   let weekY =
     startY + 58;
@@ -168,9 +176,7 @@ function drawMonth(info, startY) {
   }
 
 
-  // ----------------------------------------
-  // 日期参数
-  // ----------------------------------------
+  // ---------- DATE INFORMATION ----------
 
   let firstDay =
     new Date(
@@ -178,7 +184,6 @@ function drawMonth(info, startY) {
       info.month - 1,
       1
     ).getDay();
-
 
   let daysInMonth =
     new Date(
@@ -188,31 +193,26 @@ function drawMonth(info, startY) {
     ).getDate();
 
 
-  // ----------------------------------------
-  // 圆圈大小
-  // ----------------------------------------
+  // ---------- CIRCLE SIZE ----------
 
   let circleSize;
 
   if (width < 500) {
 
-    circleSize =
-      min(
-        columnWidth * 0.68,
-        42
-      );
+    circleSize = min(
+      columnWidth * 0.68,
+      42
+    );
 
   } else {
 
-    circleSize =
-      min(
-        columnWidth * 0.66,
-        52
-      );
+    circleSize = min(
+      columnWidth * 0.66,
+      52
+    );
   }
 
 
-  // 日期之间的垂直距离
   let rowHeight =
     circleSize + 13;
 
@@ -221,9 +221,7 @@ function drawMonth(info, startY) {
     weekY + 34;
 
 
-  // ----------------------------------------
-  // 日期
-  // ----------------------------------------
+  // ---------- DRAW DAYS ----------
 
   for (
     let day = 1;
@@ -246,13 +244,13 @@ function drawMonth(info, startY) {
       columnWidth * column +
       columnWidth / 2;
 
-
     let y =
       calendarStartY +
       row * rowHeight;
 
 
-    // 日期 ID
+    // Date ID
+
     let dateID =
       info.year +
       "-" +
@@ -265,21 +263,16 @@ function drawMonth(info, startY) {
       checkedDays[dateID] === true;
 
 
-    // --------------------------------------
-    // 日期圆圈
-    // --------------------------------------
+    // ---------- CIRCLE ----------
 
     if (isChecked) {
 
-      // 点击后：使用当前月份对应的奶色
       fill(info.color);
 
     } else {
 
-      // 未打卡
       fill(COLORS.white);
     }
-
 
     noStroke();
 
@@ -290,9 +283,7 @@ function drawMonth(info, startY) {
     );
 
 
-    // --------------------------------------
-    // 圆圈边框
-    // --------------------------------------
+    // ---------- BORDER ----------
 
     noFill();
 
@@ -313,9 +304,7 @@ function drawMonth(info, startY) {
     noStroke();
 
 
-    // --------------------------------------
-    // 日期数字
-    // --------------------------------------
+    // ---------- NUMBER ----------
 
     fill(
       isChecked
@@ -337,32 +326,24 @@ function drawMonth(info, startY) {
     );
 
 
-    // 保存点击区域
-    dayButtons.push({
+    // ---------- SAVE BUTTON AREA ----------
 
+    dayButtons.push({
       x: x,
       y: y,
-
-      radius:
-        circleSize / 2,
-
+      radius: circleSize / 2,
       id: dateID
     });
   }
 
 
-  // ----------------------------------------
-  // 计算下一个月份的位置
-  // ----------------------------------------
+  // ---------- NEXT MONTH POSITION ----------
 
   let totalRows =
     ceil(
       (firstDay + daysInMonth) / 7
     );
 
-
-  // ★ 月份之间的间距
-  // 不会像之前那么大
   let monthHeight =
     58 +
     34 +
@@ -375,7 +356,7 @@ function drawMonth(info, startY) {
 
 
 // ==========================================
-// 鼠标点击
+// MOUSE CLICK
 // ==========================================
 
 function mousePressed() {
@@ -385,27 +366,12 @@ function mousePressed() {
     mouseY
   );
 
-  return false;
+  return true;
 }
 
 
 // ==========================================
-// 手机触摸
-// ==========================================
-
-function touchStarted() {
-
-  checkDay(
-    mouseX,
-    mouseY
-  );
-
-  return false;
-}
-
-
-// ==========================================
-// 检查点击的是哪一天
+// CHECK DAY
 // ==========================================
 
 function checkDay(x, y) {
@@ -429,7 +395,6 @@ function checkDay(x, y) {
       );
 
 
-    // 点击进入圆圈
     if (
       distance <=
       button.radius
@@ -439,35 +404,21 @@ function checkDay(x, y) {
         button.id;
 
 
-      // ------------------------------------
-      // 已经打卡
-      // → 再点击取消
-      // ------------------------------------
+      // ---------- CHECK ----------
 
       if (checkedDays[id]) {
 
         delete checkedDays[id];
 
-      }
-
-      // ------------------------------------
-      // 没有打卡
-      // → 点击打卡
-      // ------------------------------------
-
-      else {
+      } else {
 
         checkedDays[id] = true;
       }
 
 
-      // 保存
       saveCheckData();
 
-
-      // 更新画面
       redraw();
-
 
       break;
     }
@@ -476,22 +427,20 @@ function checkDay(x, y) {
 
 
 // ==========================================
-// 保存打卡记录
+// SAVE
 // ==========================================
 
 function saveCheckData() {
 
   localStorage.setItem(
     "dietCalendar_2026",
-    JSON.stringify(
-      checkedDays
-    )
+    JSON.stringify(checkedDays)
   );
 }
 
 
 // ==========================================
-// 读取打卡记录
+// LOAD
 // ==========================================
 
 function loadCheckData() {
@@ -518,7 +467,7 @@ function loadCheckData() {
 
 
 // ==========================================
-// Canvas 宽度
+// CANVAS WIDTH
 // ==========================================
 
 function getCanvasWidth() {
@@ -531,7 +480,7 @@ function getCanvasWidth() {
 
 
 // ==========================================
-// Canvas 高度
+// CANVAS HEIGHT
 // ==========================================
 
 function getCanvasHeight() {
@@ -542,7 +491,6 @@ function getCanvasHeight() {
       680
     );
 
-
   let columnWidth =
     contentWidth / 7;
 
@@ -551,19 +499,17 @@ function getCanvasHeight() {
 
   if (windowWidth < 500) {
 
-    circleSize =
-      min(
-        columnWidth * 0.68,
-        42
-      );
+    circleSize = min(
+      columnWidth * 0.68,
+      42
+    );
 
   } else {
 
-    circleSize =
-      min(
-        columnWidth * 0.66,
-        52
-      );
+    circleSize = min(
+      columnWidth * 0.66,
+      52
+    );
   }
 
 
@@ -574,7 +520,8 @@ function getCanvasHeight() {
   let totalHeight = 35;
 
 
-  // 计算三个月份高度
+  // ---------- THREE MONTHS ----------
+
   for (
     let i = 0;
     i < months.length;
@@ -619,7 +566,6 @@ function getCanvasHeight() {
   }
 
 
-  // 页面底部留一点空间
   totalHeight += 20;
 
 
@@ -628,7 +574,7 @@ function getCanvasHeight() {
 
 
 // ==========================================
-// 手机旋转 / 浏览器大小变化
+// WINDOW RESIZE
 // ==========================================
 
 function windowResized() {

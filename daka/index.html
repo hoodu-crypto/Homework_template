@@ -1,33 +1,45 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <title>Diet Check Calendar</title>
 
-  <script src="https://cdn.jsdelivr.net/npm/p5@1.11.10/lib/p5.min.js"></script>
-  <script src="sketch.js"></script>
-
   <style>
-    html, body {
+    html,
+    body {
       margin: 0;
       padding: 0;
+      width: 100%;
+      min-height: 100%;
+
       background: #FFF8F5;
+
       overflow-x: hidden;
+      overflow-y: auto;
     }
 
     body {
-      display: flex;
-      justify-content: center;
+      min-height: 100vh;
     }
 
     canvas {
       display: block;
+      margin: 0 auto;
+
+      /* 允许手机上下滑动 */
+      touch-action: pan-y;
     }
   </style>
 </head>
 
 <body>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.10/p5.min.js"></script>
+
+  <script src="sketch.js"></script>
+
 </body>
 </html>
