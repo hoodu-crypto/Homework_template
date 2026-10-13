@@ -1,29 +1,44 @@
+
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>10 Days Diet Challenge</title>
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
 
-  <script src="https://cdn.jsdelivr.net/npm/p5@1.11.10/lib/p5.min.js"></script>
+  <title>10 DAYS DIET CHECK CALENDAR</title>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
   <script src="sketch.js"></script>
 
   <style>
-    html, body {
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
       margin: 0;
       padding: 0;
+      width: 100%;
+      min-height: 100%;
       background: #FFF9F6;
-      overflow-x: hidden;
+      font-family: Arial, sans-serif;
     }
 
     body {
-      display: flex;
-      justify-content: center;
+      overflow-x: hidden;
     }
 
     canvas {
       display: block;
+      width: 100%;
+      max-width: 650px;
+      height: auto;
+      margin: 0 auto;
     }
   </style>
 </head>
