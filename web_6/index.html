@@ -1,0 +1,161 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#fff7f8">
+<meta name="description" content="일상의 작은 순간과 소중한 기억을 캡슐에 담아 보세요.">
+<title>GACHA MEMO | 작은 기억 보관소</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="lucky.css">
+<script src="language.js" defer></script>
+<script src="script.js" defer></script>
+<script src="lucky.js" defer></script>
+</head>
+<body>
+<header class="site-header">
+  <a class="brand" href="index.html" aria-label="GACHA MEMO 홈">
+    <span class="brand-mark" aria-hidden="true"><span></span><span></span></span>
+    <span class="brand-name">GACHA MEMO</span>
+  </a>
+  <div class="header-right">
+    <p class="header-note"><span class="status-dot"></span><span data-i18n="headerNote">나만의 작은 추억 자판기</span></p>
+    <div class="language-switch" role="group" aria-label="Language">
+      <button type="button" class="language-option is-active" data-language="ko" aria-pressed="true">한국어</button>
+      <span class="language-divider" aria-hidden="true">|</span>
+      <button type="button" class="language-option" data-language="zh" aria-pressed="false">中文</button>
+    </div>
+  </div>
+</header>
+
+<main>
+<section class="intro">
+  <p class="eyebrow" data-i18n="eyebrow">일상의 작은 캡슐</p>
+  <h1><span data-i18n="introTitle1">소중한 순간을</span><br><span data-i18n="introTitle2">담아보세요.</span></h1>
+  <p class="intro-description"><span data-i18n="introDesc1">스쳐 지나가는 생각부터 소중한 기억까지.</span><br><span data-i18n="introDesc2">작은 캡슐에 담아 오래 간직해 보세요.</span></p>
+</section>
+
+<section class="machine-stage" aria-label="추억 캡슐 자판기" data-i18n-aria="machineLabel">
+  <div class="machine-halo"></div>
+  <div class="machine" id="machine">
+    <div class="glass-shell" id="glass-shell">
+      <div class="capsule-field" id="capsule-field" aria-label="다양한 색상의 캡슐" data-i18n-aria="capsuleFieldLabel"></div>
+      <div class="glass-rim"></div>
+      <div class="glass-shine glass-shine-left"></div>
+      <div class="glass-shine glass-shine-right"></div>
+      <div class="glass-bottom-shade"></div>
+    </div>
+    <div class="neck"><span class="neck-line"></span><span class="neck-dot"></span></div>
+    <div class="machine-body">
+      <div class="body-highlight"></div>
+      <div class="machine-brand"><span data-i18n="machineBrand">작은 기억 보관소</span></div>
+      <nav class="control-panel" aria-label="주요 메뉴" data-i18n-aria="mainMenu">
+        <button class="menu-button primary-button" type="button" data-route="create">
+          <span class="button-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span>
+          <span class="button-copy"><span class="button-title" data-i18n="createTitle">메모 만들기</span><span class="button-subtitle" data-i18n="createSubtitle">새로운 기억 기록하기</span></span>
+          <span class="button-arrow" aria-hidden="true">↗</span>
+        </button>
+        <button class="menu-button" type="button" data-route="draw">
+          <span class="button-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 7v5h-5"/><path d="M4.8 9a8 8 0 0 1 13.4-2L20 12"/><path d="M4 17v-5h5"/><path d="M19.2 15a8 8 0 0 1-13.4 2L4 12"/></svg></span>
+          <span class="button-copy"><span class="button-title" data-i18n="drawTitle">캡슐 뽑기</span><span class="button-subtitle" data-i18n="drawSubtitle">기억 하나 꺼내 보기</span></span>
+          <span class="button-arrow" aria-hidden="true">↗</span>
+        </button>
+        <button class="menu-button" type="button" data-route="collection">
+          <span class="button-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 8h16v12H4z"/><path d="M3 4h18v4H3z"/><path d="M9 13h6"/></svg></span>
+          <span class="button-copy"><span class="button-title" data-i18n="collectionTitle">나의 컬렉션</span><span class="button-subtitle" data-i18n="collectionSubtitle">모아 둔 기억 살펴보기</span></span>
+          <span class="button-arrow" aria-hidden="true">↗</span>
+        </button>
+        <button class="menu-button" type="button" data-route="organize">
+          <span class="button-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M7 7V4h10v3"/><path d="M6 7l1 13h10l1-13"/><path d="M10 11v5M14 11v5"/></svg></span>
+          <span class="button-copy"><span class="button-title" data-i18n="organizeTitle">기억 정리</span><span class="button-subtitle" data-i18n="organizeSubtitle">기록과 보관 관리하기</span></span>
+          <span class="button-arrow" aria-hidden="true">↗</span>
+        </button>
+      </nav>
+      <div class="machine-controls">
+        <span class="control-caption" data-i18n="knobCaption">손잡이를 돌려 보세요</span>
+        <button class="knob-button" id="knob-button" type="button" aria-label="자판기 손잡이 돌리기" data-i18n-aria="knobLabel">
+          <span class="knob-ring"><span class="knob-grip"></span><span class="knob-center"></span></span>
+        </button>
+      </div>
+      <div class="dispenser">
+        <div class="dispenser-lip"></div>
+        <div class="dispenser-opening" id="dispenser-opening">
+          <span class="dispenser-glow"></span>
+          <span class="dispenser-heart" aria-hidden="true">♥</span>
+        </div>
+        <span class="dispenser-caption" data-i18n="dispenserCaption">당신의 소중한 기억이 기다리고 있어요</span>
+      </div>
+      <div class="machine-foot" aria-hidden="true"><span></span><span></span></div>
+    </div>
+  </div>
+  <p class="stage-caption"><span class="caption-line"></span><span data-i18n="stageCaption">작은 캡슐 하나에 소중한 순간 하나</span><span class="caption-line"></span></p>
+</section>
+</main>
+
+<footer class="site-footer">
+  <span>GACHA MEMO</span>
+  <span class="footer-heart" aria-hidden="true">♥</span>
+  <span data-i18n="footer">오늘의 기억을 오래 간직하세요</span>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<!-- 검색과 결과는 홈 위에 나타납니다. -->
+<div class="draw-overlay" id="draw-overlay" hidden>
+  <div class="draw-backdrop" data-close-draw></div>
+  <section class="draw-dialog" role="dialog" aria-modal="true" aria-labelledby="draw-title" tabindex="-1">
+    <button class="draw-close" type="button" data-close-draw aria-label="닫기" data-i18n-aria="close">×</button>
+    <p class="draw-eyebrow">GACHA MEMO ✦</p>
+    <h2 id="draw-title" data-i18n="searchTitle">나의 기억 찾기</h2>
+    <p class="draw-help" data-i18n="searchHelp">다시 꺼내 보고 싶은 기억을 찾아보세요.</p>
+    <div class="draw-tabs">
+      <button type="button" class="draw-tab is-selected" data-search-mode="date" aria-pressed="true" data-i18n="dateTab">날짜로 찾기</button>
+      <button type="button" class="draw-tab" data-search-mode="keyword" aria-pressed="false" data-i18n="keywordTab">키워드로 찾기</button>
+    </div>
+    <form id="draw-search-form">
+      <label id="draw-search-label" for="draw-date" data-i18n="dateLabel">날짜 선택</label>
+      <input type="date" id="draw-date">
+      <input type="search" id="draw-keyword" placeholder="제목이나 내용의 단어를 입력하세요" data-i18n-placeholder="keywordPlaceholder" hidden>
+      <button type="submit" class="draw-pink-button" data-i18n="searchButton">기억 찾기 ✦</button>
+    </form>
+    <p class="draw-status" id="draw-status" role="status"></p>
+    <div class="draw-results" id="draw-results"></div>
+  </section>
+</div>
+
+<!-- 선택한 캡슐이 배출구에서 나타납니다. -->
+<div class="draw-dropped" id="draw-dropped" hidden>
+  <button class="draw-dropped-capsule" id="draw-dropped-capsule" type="button" aria-label="캡슐을 열어 기억 보기" data-i18n-aria="openCapsule">
+    <span id="draw-dropped-sticker">♡</span>
+  </button>
+  <span class="draw-dropped-label" data-i18n="droppedLabel">캡슐을 눌러 열어보세요 ✦</span>
+</div>
+
+<!-- 기억 카드: 하트로 컬렉션에 추가하거나 제외할 수 있습니다. -->
+<div class="draw-overlay" id="memory-overlay" hidden>
+  <div class="draw-backdrop" data-close-memory></div>
+  <section class="draw-dialog memory-dialog" role="dialog" aria-modal="true" aria-labelledby="memory-title" tabindex="-1">
+    <button class="draw-close" type="button" data-close-memory aria-label="닫기" data-i18n-aria="close">×</button>
+    <div class="memory-paper" id="memory-paper">
+      <div class="memory-ticket-top">
+        <span class="memory-ticket-label">MY MEMORY TICKET</span>
+        <button class="memory-favorite-button" id="memory-favorite-button" type="button" aria-label="컬렉션에 추가" aria-pressed="false" title="컬렉션에 추가">
+          <svg class="memory-heart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg>
+        </button>
+      </div>
+      <p class="memory-ticket-date" id="memory-date"></p>
+      <h2 class="memory-ticket-title" id="memory-title"></h2>
+      <div class="memory-mood" id="memory-mood"></div>
+      <div class="memory-ticket-line"></div>
+      <p class="memory-content" id="memory-content"></p>
+      <p class="memory-favorite-message" id="memory-favorite-message" role="status" aria-live="polite"></p>
+    </div>
+    <div class="memory-actions">
+      <button type="button" class="draw-secondary-button" id="memory-again" data-i18n="drawAgain">다시 뽑기</button>
+      <button type="button" class="draw-pink-button" data-close-memory data-i18n="close">닫기</button>
+    </div>
+  </section>
+</div>
+</body>
+</html>

@@ -1,0 +1,268 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#fff7f8">
+  <meta name="description" content="나만의 기억을 담은 캡슐을 만들어 보세요.">
+  <title>메모 만들기 | GACHA MEMO</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="create.css">
+  <script src="../language.js" defer></script>
+  <script src="create.js" defer></script>
+</head>
+
+<body class="create-page">
+  <main class="capsule-page">
+
+    <header class="create-header">
+      <a class="back-button" href="../index.html" aria-label="홈으로 돌아가기" data-i18n-aria="createBackHome">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+      </a>
+      <h1 data-i18n="createPageTitle">메모 만들기</h1>
+      <span class="header-sparkle" aria-hidden="true">✦</span>
+    </header>
+
+    <p class="create-intro" data-i18n="createIntro">
+      오늘의 소중한 순간을 나만의 캡슐에 담아보세요.
+    </p>
+
+    <form id="capsule-form" novalidate>
+
+      <!-- 01 캡슐 꾸미기 -->
+      <section class="create-card appearance-card" aria-labelledby="appearance-title">
+        <div class="section-heading">
+          <span class="section-number">01</span>
+          <h2 id="appearance-title" data-i18n="appearanceTitle">캡슐 꾸미기</h2>
+        </div>
+
+        <div class="capsule-preview-area">
+          <div class="preview-capsule" id="main-capsule-preview"
+               style="--preview-color:#F3A8C9"
+               aria-label="선택한 캡슐 미리보기"
+               data-i18n-aria="mainCapsuleLabel">
+            <span id="main-sticker" class="preview-sticker" aria-hidden="true">♡</span>
+            <span class="preview-seam" aria-hidden="true"></span>
+            <span class="preview-shine" aria-hidden="true"></span>
+          </div>
+          <p class="preview-helper" data-i18n="appearanceHelp">
+            마음에 드는 색과 스티커를 골라보세요.
+          </p>
+        </div>
+
+        <fieldset class="choice-group">
+          <legend data-i18n="colorLegend">캡슐 색상 선택</legend>
+          <div class="color-options" role="group"
+               aria-label="캡슐 색상 선택"
+               data-i18n-aria="colorLegend">
+
+            <button type="button" class="color-option is-selected"
+              data-color="#F3A8C9" data-color-name="분홍색"
+              aria-label="분홍색" aria-pressed="true">
+              <span style="--swatch:#F3A8C9"></span>
+              <i aria-hidden="true">✓</i>
+            </button>
+
+            <button type="button" class="color-option"
+              data-color="#C9B8EC" data-color-name="보라색"
+              aria-label="보라색" aria-pressed="false">
+              <span style="--swatch:#C9B8EC"></span>
+              <i aria-hidden="true">✓</i>
+            </button>
+
+            <button type="button" class="color-option"
+              data-color="#B9E2D0" data-color-name="민트색"
+              aria-label="민트색" aria-pressed="false">
+              <span style="--swatch:#B9E2D0"></span>
+              <i aria-hidden="true">✓</i>
+            </button>
+
+            <button type="button" class="color-option"
+              data-color="#F8E5A7" data-color-name="노란색"
+              aria-label="노란색" aria-pressed="false">
+              <span style="--swatch:#F8E5A7"></span>
+              <i aria-hidden="true">✓</i>
+            </button>
+
+            <button type="button" class="color-option"
+              data-color="#B9DDE8" data-color-name="하늘색"
+              aria-label="하늘색" aria-pressed="false">
+              <span style="--swatch:#B9DDE8"></span>
+              <i aria-hidden="true">✓</i>
+            </button>
+          </div>
+
+          <p class="choice-description" id="selected-color-label">
+            분홍색 캡슐을 선택했어요.
+          </p>
+        </fieldset>
+
+        <fieldset class="choice-group sticker-group">
+          <legend data-i18n="stickerLegend">스티커 선택</legend>
+          <div class="sticker-options" role="group"
+               aria-label="스티커 선택" data-i18n-aria="stickerLegend">
+
+            <button type="button" class="sticker-option is-selected"
+              data-sticker="♡" data-sticker-name="하트"
+              aria-label="하트 스티커" aria-pressed="true">♡</button>
+
+            <button type="button" class="sticker-option"
+              data-sticker="☆" data-sticker-name="별"
+              aria-label="별 스티커" aria-pressed="false">☆</button>
+
+            <button type="button" class="sticker-option"
+              data-sticker="✿" data-sticker-name="꽃"
+              aria-label="꽃 스티커" aria-pressed="false">✿</button>
+
+            <button type="button" class="sticker-option"
+              data-sticker="☁" data-sticker-name="구름"
+              aria-label="구름 스티커" aria-pressed="false">☁</button>
+          </div>
+        </fieldset>
+      </section>
+
+      <!-- 02 메모 작성 -->
+      <section class="create-card memo-card" aria-labelledby="memo-title">
+        <div class="section-heading">
+          <span class="section-number">02</span>
+          <h2 id="memo-title" data-i18n="memoSectionTitle">메모 작성</h2>
+        </div>
+
+        <div class="form-field">
+          <label for="memo-date" data-i18n="dateField">날짜</label>
+          <input id="memo-date" name="date" type="date" required>
+        </div>
+
+        <div class="form-field">
+          <label for="memo-title-input" data-i18n="titleField">제목</label>
+          <input id="memo-title-input" name="title" type="text"
+            maxlength="80"
+            placeholder="오늘의 기억에 제목을 붙여보세요."
+            data-i18n-placeholder="titlePlaceholder"
+            required autocomplete="off">
+        </div>
+
+        <fieldset class="form-field mood-field">
+          <legend data-i18n="moodLegend">오늘의 기분</legend>
+          <div class="mood-options" role="group"
+               aria-label="오늘의 기분 선택"
+               data-i18n-aria="moodGroupLabel">
+
+            <button type="button" class="mood-option is-selected"
+              data-mood="행복해요" data-emoji="😊" aria-pressed="true">
+              <img src="mood-happy.png" alt="행복한 표정">
+              <b>행복해요</b>
+            </button>
+
+            <button type="button" class="mood-option"
+              data-mood="뿌듯해요" data-emoji="🥰" aria-pressed="false">
+              <img src="mood-proud.png" alt="뿌듯한 표정">
+              <b>뿌듯해요</b>
+            </button>
+
+            <button type="button" class="mood-option"
+              data-mood="조금 슬퍼요" data-emoji="🥹" aria-pressed="false">
+              <img src="mood-sad.png" alt="슬픈 표정">
+              <b>조금 슬퍼요</b>
+            </button>
+
+            <button type="button" class="mood-option"
+              data-mood="피곤해요" data-emoji="😴" aria-pressed="false">
+              <img src="mood-tired.png" alt="피곤한 표정">
+              <b>피곤해요</b>
+            </button>
+          </div>
+        </fieldset>
+
+        <div class="form-field">
+          <label for="memo-content" data-i18n="contentField">오늘의 메모</label>
+          <textarea id="memo-content" name="content"
+            rows="6" maxlength="5000"
+            placeholder="오늘의 소중한 순간을 기록해 보세요."
+            data-i18n-placeholder="contentPlaceholder"
+            required></textarea>
+
+          <div class="field-foot">
+            <span data-i18n="contentHelp">기억하고 싶은 순간을 자유롭게 적어보세요.</span>
+            <span id="character-count">0 / 5000</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 03 캡슐 미리보기 -->
+      <section class="create-card live-card" aria-labelledby="live-title">
+        <div class="section-heading">
+          <span class="section-number">03</span>
+          <h2 id="live-title" data-i18n="liveTitle">캡슐 미리보기</h2>
+        </div>
+
+        <p class="live-description" data-i18n="liveHelp">
+          입력한 내용이 실시간으로 반영돼요.
+        </p>
+
+        <article class="memory-ticket" aria-live="polite">
+          <div class="ticket-top">
+            <div class="ticket-capsule" id="ticket-capsule"
+                 style="--preview-color:#F3A8C9">
+              <span id="ticket-sticker">♡</span>
+            </div>
+
+            <div class="ticket-heading">
+              <span class="ticket-date" id="preview-date">
+                날짜를 선택해 주세요.
+              </span>
+              <h3 id="preview-title">나의 작은 기억</h3>
+              <span class="ticket-mood" id="preview-mood">
+                😊 행복해요
+              </span>
+            </div>
+          </div>
+
+          <div class="ticket-divider"><span>✦</span></div>
+
+          <p class="ticket-content" id="preview-content">
+            오늘의 소중한 순간을 이곳에 기록해 보세요.
+          </p>
+
+          <span class="ticket-stamp" aria-hidden="true">GACHA MEMO</span>
+        </article>
+      </section>
+
+      <div class="submit-area">
+        <p class="form-message" id="form-message"
+           role="status" aria-live="polite"></p>
+
+        <button class="complete-button" id="complete-button" type="submit">
+          <span data-i18n="completeButton">캡슐 완성하기</span>
+          <span aria-hidden="true"></span>
+        </button>
+
+        <p class="submit-note" data-i18n="submitNote">
+          완성한 캡슐은 나의 기억 보관함에 저장돼요.
+        </p>
+      </div>
+    </form>
+
+    <section class="success-panel" id="success-panel"
+             hidden aria-live="polite">
+      <div class="success-icon" aria-hidden="true">♡</div>
+      <h2 data-i18n="successTitle">캡슐이 완성되었어요!</h2>
+      <p data-i18n="successDescription">소중한 기억을 캡슐에 담았어요.</p>
+
+      <div class="success-actions">
+        <button type="button" class="complete-button" id="make-another"
+                data-i18n="makeAnother">
+          새 캡슐 만들기
+        </button>
+        <a class="home-link" href="../index.html" data-i18n="returnHome">
+          홈으로 돌아가기
+        </a>
+      </div>
+    </section>
+
+  </main>
+</body>
+</html>

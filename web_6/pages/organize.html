@@ -1,0 +1,274 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#fff7fa">
+  <title>기억 정리 | GACHA MEMO</title>
+
+  <link rel="stylesheet" href="organize.css">
+  <script src="../language.js" defer></script>
+  <script src="organize.js" defer></script>
+</head>
+
+<body>
+
+  <!-- 상단 -->
+  <header class="site-header">
+    <a href="../index.html" class="brand">
+      GACHA MEMO
+    </a>
+
+    <a href="../index.html" class="home-button">
+      <span aria-hidden="true">←</span>
+      <span data-i18n="home">홈으로</span>
+    </a>
+  </header>
+
+  <main class="page">
+
+    <!-- 페이지 소개 -->
+    <section class="intro">
+      <p class="eyebrow">MY MEMORY ARCHIVE</p>
+      <h1 data-i18n="pageHeading">기억 정리</h1>
+      <p class="intro-description">
+        <span data-i18n="intro1">차곡차곡 쌓인 기억을 살펴보고,</span><br>
+        <span data-i18n="intro2">나만의 작은 기록들을 정리해 보세요.</span>
+      </p>
+    </section>
+
+    <!-- 기록 통계 -->
+    <section class="summary">
+      <div class="summary-card">
+        <span id="total-count" class="summary-number">0</span>
+        <span class="summary-label" data-i18n="totalRecords">전체 기록</span>
+      </div>
+
+      <div class="summary-card">
+        <span id="favorite-count" class="summary-number">0</span>
+        <span class="summary-label" data-i18n="favorites">즐겨찾기</span>
+      </div>
+    </section>
+
+    <!-- 검색 및 정렬 -->
+    <section class="archive-section">
+
+      <div class="section-heading">
+        <div>
+          <h2 data-i18n="listHeading">나의 기억 목록</h2>
+        </div>
+
+        <span class="result-count" id="result-count">
+          0개의 기록
+        </span>
+      </div>
+
+      <div class="toolbar">
+        <div class="search-box">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            aria-hidden="true"
+          >
+            <circle cx="10.8" cy="10.8" r="6.8"/>
+            <path d="m16 16 5 5"/>
+          </svg>
+
+          <input
+            type="search"
+            id="search-input"
+            placeholder="제목이나 내용 검색"
+            aria-label="기억 검색"
+            data-i18n-placeholder="searchPlaceholder"
+            data-i18n-aria="searchLabel"
+          >
+        </div>
+
+        <select
+          id="sort-select"
+          aria-label="정렬 방식"
+          data-i18n-aria="sortLabel"
+        >
+          <option value="new" data-i18n="sortNew">최신 날짜순</option>
+          <option value="old" data-i18n="sortOld">오래된 날짜순</option>
+        </select>
+      </div>
+
+      <!-- 여러 개 선택 -->
+      <div class="filter-row">
+        <button
+          type="button"
+          class="select-mode-button"
+          id="select-mode-button"
+        >
+          여러 개 선택
+        </button>
+      </div>
+
+      <!-- 여러 개 선택 도구 -->
+      <div class="selection-toolbar" id="selection-toolbar" hidden>
+        <label class="select-all-label">
+          <input type="checkbox" id="select-all">
+          <span data-i18n="selectAll">전체 선택</span>
+        </label>
+
+        <span id="selected-count">0개 선택됨</span>
+
+        <button
+          type="button"
+          class="delete-selected-button"
+          id="delete-selected"
+          disabled
+          data-i18n="deleteSelected"
+        >
+          선택 삭제
+        </button>
+      </div>
+
+      <!-- 기록 목록 -->
+      <div class="memory-list" id="memory-list"></div>
+
+      <!-- 기록 없음 -->
+      <div class="empty-state" id="empty-state" hidden>
+        <div class="empty-icon" aria-hidden="true">✧</div>
+
+        <h3 id="empty-title">아직 기록이 없어요.</h3>
+
+        <p id="empty-description">
+          첫 번째 기억을 만들어 보세요!
+        </p>
+
+        <a href="create.html" class="pink-button" data-i18n="createMemo">
+          메모 만들기
+        </a>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- 기억 수정 팝업 -->
+  <div class="modal" id="edit-modal" hidden>
+    <div class="modal-backdrop" data-close-edit></div>
+
+    <section
+      class="modal-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="edit-heading"
+      tabindex="-1"
+    >
+      <button
+        type="button"
+        class="modal-close"
+        data-close-edit
+        aria-label="닫기"
+        data-i18n-aria="close"
+      >×</button>
+
+      <div class="modal-heading">
+        <p class="eyebrow">EDIT MY MEMORY</p>
+        <h2 id="edit-heading" data-i18n="editHeading">기억 수정하기</h2>
+        <p data-i18n="editDescription">
+          소중한 기록을 다시 정리해 보세요.
+        </p>
+      </div>
+
+      <form id="edit-form">
+
+        <label for="edit-date" data-i18n="date">날짜</label>
+        <input type="date" id="edit-date" required>
+
+        <label for="edit-title" data-i18n="title">제목</label>
+        <input
+          type="text"
+          id="edit-title"
+          maxlength="100"
+          required
+          placeholder="기억의 제목"
+          data-i18n-placeholder="titlePlaceholder"
+        >
+
+        <label for="edit-content" data-i18n="content">내용</label>
+        <textarea
+          id="edit-content"
+          rows="7"
+          required
+          placeholder="기억을 적어 주세요."
+          data-i18n-placeholder="contentPlaceholder"
+        ></textarea>
+
+        <div class="edit-actions">
+          <button
+            type="button"
+            class="secondary-button"
+            data-close-edit
+            data-i18n="cancel"
+          >
+            취소
+          </button>
+
+          <button type="submit" class="pink-button" data-i18n="save">
+            저장하기
+          </button>
+        </div>
+
+      </form>
+    </section>
+  </div>
+
+  <!-- 삭제 확인 팝업 -->
+  <div class="modal" id="delete-modal" hidden>
+    <div class="modal-backdrop" data-close-delete></div>
+
+    <section
+      class="modal-dialog confirm-dialog"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="delete-heading"
+      aria-describedby="delete-description"
+      tabindex="-1"
+    >
+      <div class="confirm-icon" aria-hidden="true">!</div>
+
+      <h2 id="delete-heading">기록을 삭제할까요?</h2>
+
+      <p id="delete-description">
+        삭제한 기록은 다시 되돌릴 수 없어요.
+      </p>
+
+      <div class="edit-actions">
+        <button
+          type="button"
+          class="secondary-button"
+          data-close-delete
+          data-i18n="cancel"
+        >
+          취소
+        </button>
+
+        <button
+          type="button"
+          class="danger-button"
+          id="confirm-delete"
+          data-i18n="confirmDelete"
+        >
+          삭제하기
+        </button>
+      </div>
+    </section>
+  </div>
+
+  <!-- 알림 -->
+  <div
+    class="toast"
+    id="toast"
+    role="status"
+    aria-live="polite"
+    hidden
+  ></div>
+
+</body>
+</html>
