@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>生活与护肤调查 · 생활과 스킨케어 설문</title>
+
+<style>
+:root {
+  --bg: #f6f2eb;
+  --paper: #fffdf9;
+  --ink: #332e29;
+  --muted: #7c7369;
+  --line: #e2d8ca;
+  --accent: #9b542d;
+  --soft: #f0e3d1;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: Arial, "Noto Sans SC", "Noto Sans KR", sans-serif;
+  line-height: 1.65;
+}
+header {
+  max-width: 940px;
+  margin: auto;
+  padding: 22px 20px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+}
+.brand { font-size: 12px; letter-spacing: 2px; }
+.tools, .actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+main {
+  max-width: 800px;
+  margin: auto;
+  padding: 0 20px 70px;
+}
+h1 {
+  font-size: clamp(25px, 5vw, 36px);
+  line-height: 1.4;
+}
+h2 { font-size: 22px; }
+h3 { font-size: 17px; }
+p { margin: 12px 0; }
+button, select, input { font: inherit; }
+button {
+  padding: 11px 17px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: var(--paper);
+  color: var(--ink);
+  cursor: pointer;
+}
+button:hover { border-color: var(--accent); }
+button:disabled { opacity: .5; cursor: wait; }
+.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+button:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 3px solid #c68d58;
+  outline-offset: 3px;
+}
+.hero { padding: 15px 0; }
+.card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 24px;
+  margin: 18px 0;
+}
+.muted, .hint { color: var(--muted); }
+.hint { font-size: 13px; margin-bottom: 10px; }
+.notice {
+  background: var(--soft);
+  padding: 15px;
+  border-radius: 12px;
+}
+fieldset {
+  border: 0;
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+}
+legend {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+.choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  padding: 12px;
+  margin: 8px 0;
+  cursor: pointer;
+}
+.choice:has(input:checked) {
+  background: var(--soft);
+  border-color: var(--accent);
+}
+.choice input {
+  accent-color: var(--accent);
+  margin-top: 6px;
+  flex-shrink: 0;
+}
+.progress {
+  height: 7px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #e8dfd2;
+  margin: 12px 0 18px;
+}
+.progress span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+.nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 22px;
+}
+.error { color: #a83229; }
+select, input[type=password] {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 10px;
+  color: var(--ink);
+  max-width: 100%;
+}
+input[type=password] {
+  display: block;
+  width: 100%;
+  margin: 10px 0;
+}
+.statrow { margin: 15px 0; }
+.statline {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+}
+.statline strong { white-space: nowrap; }
+.bar {
+  background: #ece4d9;
+  height: 8px;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+.bar span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+details {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px;
+  margin-top: 12px;
+}
+summary { cursor: pointer; }
+.answer {
+  border-top: 1px solid var(--line);
+  padding: 12px 0;
+  overflow-wrap: anywhere;
+}
+footer {
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+  padding: 20px;
+}
+@media (max-width: 550px) {
+  header { align-items: flex-start; }
+  .card { padding: 18px; }
+  .tools { justify-content: flex-end; }
+  .brand { max-width: 95px; }
+}
+</style>
+</head>
+
+<body>
+<header>
+  <div class="brand">LIFE &amp; SKINCARE<br>RESEARCH</div>
+
+  <div class="tools">
+    <button type="button" id="zh">中文</button>
+    <button type="button" id="ko">한국어</button>
+    <button type="button" id="route"></button>
+  </div>
+</header>
+
+<main id="app"></main>
+<footer id="footer"></footer>
+
+<script>
+const $ = s => document.querySelector(s);
+
+let lang = localStorage.getItem("survey-v3-language") || "zh";
+if (!["zh", "ko"].includes(lang)) lang = "zh";
+
+let questions = [];
+let answers = {};
+let page = 0;
+let consent = false;
+let busy = false;
+let submitted = false;
+let savedId = null;
+let pendingSubmission = null;
+
+let rows = [];
+let loaded = false;
+let questionsLoading = false;
+let resultsLoading = false;
+
+let token = sessionStorage.getItem("survey-v3-token") || "";
+let group = "all";
+let region = "all";
+
+function makeId() {
+  if (globalThis.crypto && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return Date.now().toString(36) + "-" +
+    Math.random().toString(36).slice(2) + "-" +
+    Math.random().toString(36).slice(2);
+}
+
+const C = {
+  title: [
+    "你的生活与护肤选择",
+    "당신의 생활과 스킨케어 선택"
+  ],
+  intro: [
+    "共18题，约4—6分钟，全部为选择题。本研究主要关注25—35岁、开始正式工作一年以内的职场新人；其他年龄和工作状态也可以填写。",
+    "총 18문항으로 약 4~6분이 걸리며 모두 선택형입니다. 본 연구는 정식 직장 생활을 시작한 지 1년 이내인 만 25~35세 사회초년생을 주로 살펴봅니다. 다른 연령이나 취업 상태인 분도 참여할 수 있습니다."
+  ],
+  purpose: [
+    "本调查用于大学广告企划课程，了解日常生活、护肤选择及雪花秀品牌认知，并非品牌官方调查。请按真实情况回答。",
+    "본 설문은 대학 광고 기획 수업을 위해 일상생활, 스킨케어 선택, 설화수에 대한 인식을 알아보는 연구이며 브랜드의 공식 설문이 아닙니다. 실제 상황을 바탕으로 답해 주세요."
+  ],
+  privacy: [
+    "不收集姓名、电话或邮箱。提交的答案将保存至本项目数据库，供研究者查看和汇总分析。参与自愿，提交前可以退出。",
+    "이름, 전화번호, 이메일은 수집하지 않습니다. 제출한 답변은 프로젝트 데이터베이스에 저장되며 연구자가 확인하고 종합 분석합니다. 참여는 자발적이며 제출 전 중단할 수 있습니다."
+  ],
+  workHint: [
+    "从第一次开始正式工作算起，不是只计算目前公司的入职时间。学生时期的短期兼职、实习不计入。",
+    "첫 정식 직장 생활을 시작한 시점을 기준으로 답해 주세요. 현재 회사의 재직 기간만을 뜻하지 않습니다. 학생 시절의 단기 아르바이트나 인턴 경험은 포함하지 않습니다."
+  ],
+  consent: [
+    "我已阅读说明，同意将回答用于课程研究。",
+    "안내를 읽었으며 답변을 수업 연구에 활용하는 것에 동의합니다."
+  ],
+  results: ["查看统计（研究者）", "통계 보기 (연구자)"],
+  survey: ["返回问卷", "설문으로 돌아가기"],
+  previous: ["上一页", "이전"],
+  next: ["下一页", "다음"],
+  submit: ["提交问卷", "설문 제출"],
+  saving: ["正在保存……", "저장 중…"],
+  single: ["请选择1项", "1개를 선택해 주세요"],
+  multi: [
+    "最多选2项；“没有／不买／不查找”等选项请单独选择。",
+    "최대 2개 선택. '없음 / 구매하지 않음 / 찾아보지 않음' 등의 항목은 단독으로 선택해 주세요."
+  ],
+  page: ["第", "현재"],
+  pageUnit: ["页", "페이지"],
+  answered: ["已回答", "응답 완료"],
+  missing: ["请先回答第", "먼저 다음 문항에 답해 주세요: "],
+  questionUnit: ["题", "번"],
+  max: ["这题最多选择2项。", "이 문항은 최대 2개까지 선택할 수 있습니다."],
+  agree: ["请先勾选研究参与同意。", "연구 참여 동의 항목을 선택해 주세요."],
+  success: ["提交成功，谢谢你！", "제출되었습니다. 감사합니다!"],
+  saved: [
+    "你的回答已保存。回答编号：",
+    "답변이 저장되었습니다. 응답 번호: "
+  ],
+  login: ["研究者登录", "연구자 로그인"],
+  password: ["管理员密码", "관리자 비밀번호"],
+  enter: ["登录", "로그인"],
+  wrong: [
+    "密码不正确，请重新输入。",
+    "비밀번호가 올바르지 않습니다. 다시 입력해 주세요."
+  ],
+  dashboard: ["18题问卷统计", "18문항 설문 통계"],
+  refresh: ["刷新数据", "데이터 새로고침"],
+  logout: ["退出登录", "로그아웃"],
+  total: ["本版问卷总回答数", "이번 버전의 전체 응답 수"],
+  sample: ["当前筛选样本数", "현재 필터의 응답 수"],
+  all: ["全部受访者", "전체 응답자"],
+  target: [
+    "目标人群：25—35岁／正式工作1年以内",
+    "목표 집단: 만 25~35세 / 정식 직장 생활 1년 이내"
+  ],
+  others: ["其他受访者", "그 외 응답자"],
+  regions: ["全部生活地区", "전체 거주 지역"],
+  base: ["本题有效回答", "문항 유효 응답"],
+  people: ["人", "명"],
+  empty: ["暂无回答", "아직 응답이 없습니다"],
+  raw: ["逐份查看回答", "개별 답변 보기"],
+  response: ["回答", "응답"],
+  note: [
+    "比例以当前筛选中回答该题的人数为分母。多选题比例总和可能超过100%。结果仅描述本次样本。本版与先前版本分开统计。",
+    "비율은 현재 필터에서 해당 문항에 응답한 사람 수를 기준으로 계산합니다. 복수 선택 문항의 비율 합계는 100%를 넘을 수 있습니다. 결과는 이번 표본을 설명합니다. 이전 버전과는 별도로 집계합니다."
+  ],
+  load: ["正在加载……", "불러오는 중…"],
+  retry: ["重试", "다시 시도"],
+  loadError: [
+    "问题加载失败。请确认两个文件都已替换保存，并重新启动Python。本地测试使用8000地址，不使用Live Server的5500地址。",
+    "문항을 불러오지 못했습니다. 두 파일을 모두 교체하고 저장한 후 Python을 다시 실행했는지 확인해 주세요. 로컬 테스트에는 5500이 아닌 8000 주소를 사용해 주세요."
+  ],
+  network: [
+    "未能连接后台。请确认Python仍在运行，再重试。不要刷新页面，当前选择会保留。",
+    "서버에 연결하지 못했습니다. Python이 실행 중인지 확인한 후 다시 시도해 주세요. 페이지를 새로고침하지 않으면 현재 선택이 유지됩니다."
+  ],
+  submitError: [
+    "后台未能保存，请重试。若持续失败，请检查代码版本和终端。",
+    "서버에서 저장하지 못했습니다. 다시 시도해 주세요. 문제가 계속되면 코드 버전과 터미널을 확인해 주세요."
+  ],
+  footer: [
+    "大学课程研究 · 非品牌官方调查",
+    "대학 수업 연구 · 브랜드 공식 설문 아님"
+  ],
+  sections: [
+    ["基本情况", "기본 정보"],
+    ["护肤与选择", "스킨케어와 선택"],
+    ["雪花秀与品牌沟通", "설화수와 브랜드 커뮤니케이션"]
+  ]
+};
+
+function t(key) {
+  return C[key][lang === "zh" ? 0 : 1];
+}
+
+function label(item) {
+  return item[lang];
+}
+
+function esc(value) {
+  return String(value ?? "").replace(/[&<>"']/g, ch => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  }[ch]));
+}
+
+function updateChrome() {
+  document.documentElement.lang = lang === "zh" ? "zh-CN" : "ko";
+  document.title = t("title");
+
+  $("#route").textContent =
+    location.hash === "#results" ? t("survey") : t("results");
+
+  $("#footer").textContent = t("footer");
+  $("#zh").setAttribute("aria-pressed", String(lang === "zh"));
+  $("#ko").setAttribute("aria-pressed", String(lang === "ko"));
+
+  $("#zh").disabled = busy;
+  $("#ko").disabled = busy;
+  $("#route").disabled = busy;
+}
+
+function complete(q) {
+  const value = answers[q.id];
+
+  return q.multi
+    ? Array.isArray(value) && value.length > 0
+    : typeof value === "string" && value !== "";
+}
+
+function questionHTML(q, number) {
+  const value = answers[q.id];
+
+  return `
+    <section class="card" id="q-${q.id}">
+      <fieldset ${busy ? "disabled" : ""}>
+        <legend>${number}. ${esc(label(q))}</legend>
+
+        <div class="hint">
+          ${q.multi ? t("multi") : t("single")}
+        </div>
+
+        ${q.id === "work_duration"
+          ? `<p class="hint">${t("workHint")}</p>`
+          : ""}
+
+        ${q.options.map(o => {
+          const checked = q.multi
+            ? Array.isArray(value) && value.includes(o.code)
+            : value === o.code;
+
+          return `
+            <label class="choice">
+              <input
+                type="${q.multi ? "checkbox" : "radio"}"
+                name="${q.id}"
+                data-q="${q.id}"
+                value="${o.code}"
+                ${checked ? "checked" : ""}
+              >
+              <span>${esc(label(o))}</span>
+            </label>`;
+        }).join("")}
+      </fieldset>
+    </section>`;
+}
+
+function renderSurvey() {
+  updateChrome();
+
+  if (submitted) {
+    $("#app").innerHTML = `
+      <section class="card">
+        <h1>${t("success")}</h1>
+        <p>${t("saved")}#${savedId}</p>
+      </section>`;
+    return;
+  }
+
+  const start = page * 6;
+  const subset = questions.slice(start, start + 6);
+  const count = questions.filter(complete).length;
+
+  $("#app").innerHTML = `
+    <section class="hero">
+      <h1>${t("title")}</h1>
+
+      ${page === 0 ? `
+        <p>${t("intro")}</p>
+        <p class="muted">${t("purpose")}</p>
+        <div class="notice">${t("privacy")}</div>
+      ` : ""}
+
+      <h2>${t("sections")[page]}</h2>
+
+      <p class="muted">
+        ${t("page")} ${page + 1} / 3 ${t("pageUnit")}
+        · ${t("answered")} <span id="count">${count}</span> / 18
+      </p>
+
+      <div class="progress" aria-hidden="true">
+        <span id="progress" style="width:${count / 18 * 100}%"></span>
+      </div>
+    </section>
+
+    <form id="form" novalidate>
+      ${subset.map((q, i) =>
+        questionHTML(q, start + i + 1)
+      ).join("")}
+
+      ${page === 2 ? `
+        <section class="card">
+          <label class="choice">
+            <input type="checkbox" id="consent"
+              ${consent ? "checked" : ""}
+              ${busy ? "disabled" : ""}>
+            <span>${t("consent")}</span>
+          </label>
+        </section>
+      ` : ""}
+
+      <p id="error" class="error" role="alert"></p>
+
+      <div class="nav">
+        ${page > 0 ? `
+          <button type="button" id="previous"
+            ${busy ? "disabled" : ""}>
+            ← ${t("previous")}
+          </button>
+        ` : "<span></span>"}
+
+        <button class="primary" type="submit"
+          ${busy ? "disabled" : ""}>
+          ${busy
+            ? t("saving")
+            : page < 2 ? t("next") + " →" : t("submit")}
+        </button>
+      </div>
+    </form>`;
+
+  $("#form").addEventListener("change", event => {
+    if (busy) return;
+
+    const el = event.target;
+
+    if (el.id === "consent") {
+      consent = el.checked;
+      $("#error").textContent = "";
+      return;
+    }
+
+    const id = el.dataset.q;
+    if (!id) return;
+
+    const q = questions.find(item => item.id === id);
+
+    if (!q.multi) {
+      answers[id] = el.value;
+    } else {
+      const old = Array.isArray(answers[id]) ? [...answers[id]] : [];
+      let selected;
+
+      if (!el.checked) {
+        selected = old.filter(v => v !== el.value);
+      } else if (el.value === "none") {
+        selected = ["none"];
+      } else {
+        selected = old.filter(v => v !== "none");
+        if (!selected.includes(el.value)) {
+          selected.push(el.value);
+        }
+      }
+
+      if (selected.length > q.max) {
+        selected = old;
+        alert(t("max"));
+      }
+
+      answers[id] = selected;
+
+      document.querySelectorAll(`input[name="${id}"]`)
+        .forEach(input => {
+          input.checked = selected.includes(input.value);
+        });
+    }
+
+    const count = questions.filter(complete).length;
+    $("#count").textContent = count;
+    $("#progress").style.width = count / 18 * 100 + "%";
+    $("#error").textContent = "";
+  });
+
+  if ($("#previous")) {
+    $("#previous").addEventListener("click", () => {
+      if (busy) return;
+      page--;
+      renderSurvey();
+      window.scrollTo(0, 0);
+    });
+  }
+
+  $("#form").addEventListener("submit", nextOrSubmit);
+}
+
+function showError(message, q) {
+  $("#error").textContent = message;
+
+  const target = q ? $(`#q-${q.id}`) : $("#consent");
+
+  if (target) {
+    target.scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    });
+
+    const input = target.matches("input")
+      ? target
+      : target.querySelector("input");
+
+    if (input) input.focus({ preventScroll: true });
+  }
+}
+
+async function nextOrSubmit(event) {
+  event.preventDefault();
+  if (busy) return;
+
+  const current = questions.slice(page * 6, page * 6 + 6);
+  const missing = current.find(q => !complete(q));
+
+  if (missing) {
+    const number = questions.indexOf(missing) + 1;
+    showError(t("missing") + number + t("questionUnit"), missing);
+    return;
+  }
+
+  if (page < 2) {
+    page++;
+    renderSurvey();
+    window.scrollTo(0, 0);
+    return;
+  }
+
+  const anyMissing = questions.find(q => !complete(q));
+
+  if (anyMissing) {
+    page = Math.floor(questions.indexOf(anyMissing) / 6);
+    renderSurvey();
+
+    showError(
+      t("missing") +
+      (questions.indexOf(anyMissing) + 1) +
+      t("questionUnit"),
+      anyMissing
+    );
+    return;
+  }
+
+  if (!consent) {
+    showError(t("agree"));
+    return;
+  }
+
+  // 完全相同的重试使用相同编号，避免网络重试重复写入。
+  const signature = JSON.stringify({
+    language: lang,
+    answers
+  });
+
+  if (!pendingSubmission || pendingSubmission.signature !== signature) {
+    pendingSubmission = {
+      signature,
+      body: {
+        requestId: makeId(),
+        language: lang,
+        consent: true,
+        answers: JSON.parse(JSON.stringify(answers))
+      }
+    };
+  }
+
+  busy = true;
+  renderSurvey();
+
+  try {
+    const response = await fetch("/api/submit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(pendingSubmission.body)
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.ok) {
+      throw new Error("save_failed");
+    }
+
+    savedId = data.id;
+    submitted = true;
+    answers = {};
+    pendingSubmission = null;
+    busy = false;
+
+    if (location.hash !== "#results") {
+      renderSurvey();
+      window.scrollTo(0, 0);
+    }
+
+  } catch (error) {
+    busy = false;
+
+    if (location.hash !== "#results") {
+      renderSurvey();
+      $("#error").textContent =
+        error.message === "save_failed"
+          ? t("submitError")
+          : t("network");
+    }
+  } finally {
+    busy = false;
+    updateChrome();
+  }
+}
+
+function renderLogin() {
+  $("#app").innerHTML = `
+    <section class="card">
+      <h1>${t("login")}</h1>
+
+      <form id="loginForm">
+        <label for="password">${t("password")}</label>
+        <input type="password" id="password"
+          autocomplete="current-password" required>
+
+        <button class="primary" type="submit">${t("enter")}</button>
+        <p id="loginError" class="error" role="alert"></p>
+      </form>
+    </section>`;
+
+  $("#loginForm").addEventListener("submit", async event => {
+    event.preventDefault();
+
+    const button = event.currentTarget.querySelector("button");
+    button.disabled = true;
+    const password = $("#password").value;
+
+    try {
+      const response = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password })
+      });
+
+      if (response.status === 401) {
+        if ($("#loginError")) {
+          $("#loginError").textContent = t("wrong");
+        }
+        return;
+      }
+
+      if (!response.ok) throw new Error("login_failed");
+
+      const data = await response.json();
+      token = data.token;
+      sessionStorage.setItem("survey-v3-token", token);
+
+      if (location.hash === "#results") {
+        await loadResults();
+      }
+
+    } catch (error) {
+      if ($("#loginError")) {
+        $("#loginError").textContent = t("network");
+      }
+    } finally {
+      button.disabled = false;
+    }
+  });
+}
+
+function isTarget(row) {
+  return ["25_29", "30_35"].includes(row.answers.age) &&
+    ["0_3", "4_6", "7_12"].includes(row.answers.work_duration);
+}
+
+function filteredRows() {
+  return rows.filter(row => {
+    const groupMatch =
+      group === "all" ||
+      (group === "target" && isTarget(row)) ||
+      (group === "others" && !isTarget(row));
+
+    return groupMatch &&
+      (region === "all" || row.answers.region === region);
+  });
+}
+
+function answerText(q, value) {
+  const values = Array.isArray(value) ? value : [value];
+
+  return values.map(code => {
+    const o = q.options.find(item => item.code === code);
+    return o ? label(o) : "—";
+  }).join(" / ");
+}
+
+function statHTML(q, index, data) {
+  const valid = data.filter(row => {
+    const value = row.answers[q.id];
+
+    return q.multi
+      ? Array.isArray(value) && value.length > 0
+      : typeof value === "string" && value !== "";
+  });
+
+  return `
+    <section class="card">
+      <h3>${index + 1}. ${esc(label(q))}</h3>
+
+      <p class="hint">
+        ${t("base")}：${valid.length}${t("people")}
+        · ${q.multi ? t("multi") : t("single")}
+      </p>
+
+      ${q.options.map(o => {
+        const count = valid.filter(row => {
+          const value = row.answers[q.id];
+
+          return Array.isArray(value)
+            ? value.includes(o.code)
+            : value === o.code;
+        }).length;
+
+        const pct = valid.length
+          ? count / valid.length * 100
+          : 0;
+
+        return `
+          <div class="statrow">
+            <div class="statline">
+              <span>${esc(label(o))}</span>
+              <strong>
+                ${count}${t("people")} · ${pct.toFixed(1)}%
+              </strong>
+            </div>
+
+            <div class="bar" aria-hidden="true">
+              <span style="width:${pct}%"></span>
+            </div>
+          </div>`;
+      }).join("")}
+    </section>`;
+}
+
+function renderDashboard() {
+  const data = filteredRows();
+  const regionQ = questions.find(q => q.id === "region");
+
+  $("#app").innerHTML = `
+    <section class="hero">
+      <h1>${t("dashboard")}</h1>
+
+      <div class="actions">
+        <button id="refresh">${t("refresh")}</button>
+        <button id="logout">${t("logout")}</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <p>${t("total")}：<strong>${rows.length}</strong></p>
+      <p>${t("sample")}：<strong>${data.length}</strong></p>
+
+      <div class="actions">
+        <select id="group" aria-label="${t("all")}">
+          <option value="all"
+            ${group === "all" ? "selected" : ""}>
+            ${t("all")}
+          </option>
+
+          <option value="target"
+            ${group === "target" ? "selected" : ""}>
+            ${t("target")}
+          </option>
+
+          <option value="others"
+            ${group === "others" ? "selected" : ""}>
+            ${t("others")}
+          </option>
+        </select>
+
+        <select id="region" aria-label="${t("regions")}">
+          <option value="all">${t("regions")}</option>
+
+          ${regionQ.options.map(o => `
+            <option value="${o.code}"
+              ${region === o.code ? "selected" : ""}>
+              ${esc(label(o))}
+            </option>
+          `).join("")}
+        </select>
+      </div>
+
+      <p class="muted">${t("note")}</p>
+    </section>
+
+    ${questions.map((q, i) =>
+      statHTML(q, i, data)
+    ).join("")}
+
+    <section class="card">
+      <h2>${t("raw")}</h2>
+
+      ${data.map(row => `
+        <details>
+          <summary>
+            ${t("response")} #${row.id}
+            · ${esc(new Date(row.createdAt).toLocaleString(
+              lang === "zh" ? "zh-CN" : "ko-KR",
+              {
+                timeZone: "Asia/Seoul",
+                hour12: false
+              }
+            ))} (UTC+9)
+            · ${row.language === "zh" ? "中文" : "한국어"}
+          </summary>
+
+          ${questions.map((q, i) => `
+            <div class="answer">
+              <strong>
+                ${i + 1}. ${esc(label(q))}
+              </strong><br>
+              ${esc(answerText(q, row.answers[q.id]))}
+            </div>
+          `).join("")}
+        </details>
+      `).join("") || `<p>${t("empty")}</p>`}
+    </section>`;
+
+  $("#group").addEventListener("change", event => {
+    group = event.target.value;
+    renderDashboard();
+  });
+
+  $("#region").addEventListener("change", event => {
+    region = event.target.value;
+    renderDashboard();
+  });
+
+  $("#refresh").addEventListener("click", loadResults);
+
+  $("#logout").addEventListener("click", async () => {
+    const oldToken = token;
+
+    token = "";
+    rows = [];
+    loaded = false;
+    sessionStorage.removeItem("survey-v3-token");
+
+    renderLogin();
+
+    try {
+      await fetch("/api/logout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + oldToken
+        },
+        body: "{}"
+      });
+    } catch (error) {
+      // 本机登录状态已清除，服务器会话也会到期失效。
+    }
+  });
+}
+
+async function loadResults() {
+  if (!token) {
+    renderLogin();
+    return;
+  }
+
+  if (resultsLoading) return;
+
+  resultsLoading = true;
+  const activeToken = token;
+
+  $("#app").innerHTML = `
+    <section class="card">${t("load")}</section>`;
+
+  try {
+    const response = await fetch("/api/responses", {
+      headers: {
+        Authorization: "Bearer " + activeToken
+      }
+    });
+
+    if (token !== activeToken) return;
+
+    if (response.status === 401) {
+      token = "";
+      rows = [];
+      loaded = false;
+      sessionStorage.removeItem("survey-v3-token");
+
+      if (location.hash === "#results") {
+        renderLogin();
+      }
+      return;
+    }
+
+    if (!response.ok) throw new Error("load_failed");
+
+    const data = await response.json();
+    rows = data.responses;
+    loaded = true;
+
+    if (location.hash === "#results") {
+      renderDashboard();
+    }
+
+  } catch (error) {
+    if (location.hash === "#results") {
+      $("#app").innerHTML = `
+        <section class="card">
+          <p class="error">${t("network")}</p>
+          <button id="retryResults">${t("retry")}</button>
+        </section>`;
+
+      $("#retryResults").addEventListener(
+        "click",
+        loadResults
+      );
+    }
+  } finally {
+    resultsLoading = false;
+  }
+}
+
+function route() {
+  updateChrome();
+
+  if (!questions.length) return;
+
+  if (location.hash === "#results") {
+    if (token) loadResults();
+    else renderLogin();
+  } else {
+    renderSurvey();
+  }
+}
+
+function changeLanguage(next) {
+  if (busy) return;
+
+  lang = next;
+  localStorage.setItem("survey-v3-language", lang);
+  updateChrome();
+
+  if (!questions.length) {
+    if (!questionsLoading) start();
+    return;
+  }
+
+  if (location.hash === "#results") {
+    if (token && loaded && !resultsLoading) {
+      renderDashboard();
+    } else if (token) {
+      if (resultsLoading) {
+        $("#app").innerHTML = `
+          <section class="card">${t("load")}</section>`;
+      } else {
+        loadResults();
+      }
+    } else {
+      renderLogin();
+    }
+  } else {
+    const y = window.scrollY;
+    renderSurvey();
+    window.scrollTo(0, y);
+  }
+}
+
+$("#zh").addEventListener("click", () => {
+  changeLanguage("zh");
+});
+
+$("#ko").addEventListener("click", () => {
+  changeLanguage("ko");
+});
+
+$("#route").addEventListener("click", () => {
+  if (busy) return;
+
+  location.hash =
+    location.hash === "#results" ? "" : "results";
+});
+
+window.addEventListener("hashchange", route);
+
+async function start() {
+  if (questionsLoading) return;
+
+  questionsLoading = true;
+  updateChrome();
+
+  $("#app").innerHTML = `
+    <section class="card">${t("load")}</section>`;
+
+  try {
+    const response = await fetch("/api/questions");
+
+    if (!response.ok) throw new Error("load_failed");
+
+    const data = await response.json();
+
+    if (
+      data.version !== 3 ||
+      !Array.isArray(data.questions) ||
+      data.questions.length !== 18 ||
+      !data.questions.some(q => q.id === "work_duration")
+    ) {
+      throw new Error("wrong_server_version");
+    }
+
+    questions = data.questions;
+    questionsLoading = false;
+    route();
+
+  } catch (error) {
+    questionsLoading = false;
+
+    $("#app").innerHTML = `
+      <section class="card">
+        <p class="error">${t("loadError")}</p>
+        <button id="retryStart">${t("retry")}</button>
+      </section>`;
+
+    $("#retryStart").addEventListener("click", start);
+  }
+}
+
+start();
+</script>
+</body>
+</html>
