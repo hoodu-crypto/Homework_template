@@ -2,22 +2,24 @@ import os
 import json
 import time
 import secrets
-import sqlite3
 import threading
 from pathlib import Path
-from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlencode
+from urllib.request import Request, urlopen
+from urllib.error import HTTPError, URLError
 
 ROOT = Path(__file__).resolve().parent
-DB_PATH = ROOT / "survey.db"
 PORT = int(os.environ.get("PORT", "8000"))
-PASSWORD = os.environ.get("SURVEY_ADMIN_PASSWORD", "")
 
-if len(PASSWORD) < 12:
-    raise SystemExit("请先设置至少12位管理员密码：SURVEY_ADMIN_PASSWORD")
+PASSWORD = os.environ.get("SURVEY_ADMIN_PASSWORD", "")
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "").strip().rstrip("/")
+SUPABASE_SECRET_KEY = os.environ.get("SUPABASE_SECRET_KEY", "").strip()
 
 TABLE = "responses_v3"
+
+SESSIONS = {}
+LOCK = threading.Lock()
 
 
 def O(code, zh, ko):
@@ -59,7 +61,7 @@ QUESTIONS = [
             O(
                 "not_started",
                 "尚未开始正式工作",
-                "아직 정식 직장 생활을 시작하지 않음"
+                "아직 정식 직장 생활을 시작하지 않음",
             ),
         ],
     ),
@@ -93,17 +95,17 @@ QUESTIONS = [
             O(
                 "money",
                 "更多自己安排收入与支出",
-                "수입과 지출을 스스로 관리하는 일이 늘었다"
+                "수입과 지출을 스스로 관리하는 일이 늘었다",
             ),
             O(
                 "appearance",
                 "更在意见人时的外在状态",
-                "사람을 만날 때 외적인 모습에 더 신경 쓰게 되었다"
+                "사람을 만날 때 외적인 모습에 더 신경 쓰게 되었다",
             ),
             O(
                 "care",
                 "更想花时间或金钱照顾自己",
-                "나를 돌보는 데 시간이나 돈을 더 쓰고 싶어졌다"
+                "나를 돌보는 데 시간이나 돈을 더 쓰고 싶어졌다",
             ),
             O("none", "没有明显变化", "크게 달라진 점이 없다"),
         ],
@@ -131,7 +133,7 @@ QUESTIONS = [
             O(
                 "confidence",
                 "让自己看起来更精神、更有自信",
-                "더 생기 있어 보이고 자신감을 얻기 위해"
+                "더 생기 있어 보이고 자신감을 얻기 위해",
             ),
             O("rest", "享受照顾自己的时间", "나를 돌보는 시간을 즐기기 위해"),
             O("none", "平时基本不护肤", "평소 피부 관리를 거의 하지 않음"),
@@ -161,12 +163,12 @@ QUESTIONS = [
             O(
                 "trust",
                 "品牌与功效信息是否可信",
-                "브랜드와 효능 정보를 신뢰할 수 있는지"
+                "브랜드와 효능 정보를 신뢰할 수 있는지",
             ),
             O(
                 "none",
                 "平时不买／没有特别看重的因素",
-                "평소 구매하지 않음 / 특별히 중요하게 보는 요소 없음"
+                "평소 구매하지 않음 / 특별히 중요하게 보는 요소 없음",
             ),
         ],
         True,
@@ -182,7 +184,7 @@ QUESTIONS = [
             O(
                 "official",
                 "品牌官方信息或门店说明",
-                "브랜드 공식 정보나 매장 설명"
+                "브랜드 공식 정보나 매장 설명",
             ),
             O("none", "通常不特别查找信息", "별도로 정보를 찾아보지 않음"),
         ],
@@ -197,18 +199,18 @@ QUESTIONS = [
             O(
                 "proof",
                 "宣传的效果是否可信",
-                "광고에서 말하는 효과를 믿을 수 있는지"
+                "광고에서 말하는 효과를 믿을 수 있는지",
             ),
             O(
                 "value",
                 "和其他品牌相比，是否值得这个价格",
-                "다른 브랜드와 비교해 가격에 걸맞은 가치가 있는지"
+                "다른 브랜드와 비교해 가격에 걸맞은 가치가 있는지",
             ),
             O("start", "应该从哪款产品开始", "어떤 제품부터 써야 하는지"),
             O(
                 "none",
                 "没有特别困难／不考虑购买",
-                "특별히 어렵지 않음 / 구매를 고려하지 않음"
+                "특별히 어렵지 않음 / 구매를 고려하지 않음",
             ),
         ],
     ),
@@ -233,7 +235,7 @@ QUESTIONS = [
             O(
                 "older",
                 "更适合比我年长的人",
-                "나보다 연령대가 높은 사람에게 더 어울림"
+                "나보다 연령대가 높은 사람에게 더 어울림",
             ),
             O("forme", "适合自己日常使用", "내가 일상에서 쓰기에 어울림"),
             O("unknown", "不了解，没有明确印象", "잘 몰라서 뚜렷한 인상이 없음"),
@@ -248,7 +250,7 @@ QUESTIONS = [
             O(
                 "maybe",
                 "可能会，想先了解",
-                "고려할 수 있지만 먼저 알아보고 싶음"
+                "고려할 수 있지만 먼저 알아보고 싶음",
             ),
             O("no", "暂时不会", "현재는 고려하지 않겠음"),
             O("unknown", "不了解，无法判断", "잘 몰라서 판단하기 어려움"),
@@ -263,17 +265,17 @@ QUESTIONS = [
             O(
                 "fit",
                 "不确定是否适合自己的皮肤",
-                "내 피부에 맞는지 확신이 없음"
+                "내 피부에 맞는지 확신이 없음",
             ),
             O(
                 "distance",
                 "觉得与自己的年龄或生活有距离",
-                "내 나이나 생활과 거리가 느껴짐"
+                "내 나이나 생활과 거리가 느껴짐",
             ),
             O(
                 "info",
                 "了解太少，不知道为什么选它",
-                "정보가 부족해 선택할 이유를 모르겠음"
+                "정보가 부족해 선택할 이유를 모르겠음",
             ),
             O("none", "没有特别顾虑", "특별히 망설이는 이유 없음"),
         ],
@@ -290,7 +292,7 @@ QUESTIONS = [
             O(
                 "value",
                 "与其他品牌的区别、为什么值得买",
-                "다른 브랜드와의 차이와 구매할 만한 이유"
+                "다른 브랜드와의 차이와 구매할 만한 이유",
             ),
             O("none", "暂时没有想了解的", "현재 더 알고 싶은 내용 없음"),
         ],
@@ -303,22 +305,22 @@ QUESTIONS = [
             O(
                 "sample",
                 "先拿试用装，确认适不适合",
-                "샘플을 먼저 써 보고 나에게 맞는지 확인"
+                "샘플을 먼저 써 보고 나에게 맞는지 확인",
             ),
             O(
                 "budget",
                 "有预算内的小规格或入门组合",
-                "예산에 맞는 소용량 제품이나 입문 구성"
+                "예산에 맞는 소용량 제품이나 입문 구성",
             ),
             O(
                 "guide",
                 "得到清楚、适合自己的产品建议",
-                "나에게 맞는 명확한 제품 추천"
+                "나에게 맞는 명확한 제품 추천",
             ),
             O(
                 "peer",
                 "看到与我情况相似的人的可信体验",
-                "나와 비슷한 사람의 믿을 만한 사용 경험"
+                "나와 비슷한 사람의 믿을 만한 사용 경험",
             ),
             O("none", "暂时不想尝试", "현재 사용해 볼 생각 없음"),
         ],
@@ -331,22 +333,22 @@ QUESTIONS = [
             O(
                 "daily",
                 "贴近真实生活，让我有共鸣",
-                "실제 일상과 가까워 공감할 수 있는 내용"
+                "실제 일상과 가까워 공감할 수 있는 내용",
             ),
             O(
                 "guide",
                 "简单清楚地告诉我怎么选、怎么用",
-                "선택법과 사용법을 쉽고 명확하게 알려 주는 내용"
+                "선택법과 사용법을 쉽고 명확하게 알려 주는 내용",
             ),
             O(
                 "proof",
                 "展示真实使用感与可信的产品信息",
-                "실제 사용감과 신뢰할 수 있는 제품 정보를 보여 주는 내용"
+                "실제 사용감과 신뢰할 수 있는 제품 정보를 보여 주는 내용",
             ),
             O(
                 "culture",
                 "有美感、有品牌文化故事",
-                "시각적으로 아름답고 브랜드 문화 이야기가 있는 내용"
+                "시각적으로 아름답고 브랜드 문화 이야기가 있는 내용",
             ),
             O("none", "通常不看护肤广告", "스킨케어 광고를 거의 보지 않음"),
         ],
@@ -354,26 +356,142 @@ QUESTIONS = [
 ]
 
 
-def connect():
-    con = sqlite3.connect(DB_PATH, timeout=20)
-    con.row_factory = sqlite3.Row
-    return con
+class DatabaseError(Exception):
+    pass
 
 
-with connect() as con:
-    con.execute("PRAGMA journal_mode=WAL")
-    con.execute("""
-        CREATE TABLE IF NOT EXISTS responses_v3 (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            request_id TEXT NOT NULL UNIQUE,
-            created_at TEXT NOT NULL,
-            language TEXT NOT NULL,
-            answers TEXT NOT NULL
+def database_request(method="GET", params=None, data=None, prefer=None):
+    url = SUPABASE_URL + "/rest/v1/" + TABLE
+
+    if params:
+        url += "?" + urlencode(params)
+
+    headers = {
+        "apikey": SUPABASE_SECRET_KEY,
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+    }
+
+    # 新版 sb_secret 密钥放在 apikey 中，
+    # 不作为 Authorization Bearer 发送。
+    if prefer:
+        headers["Prefer"] = prefer
+
+    raw = None
+    if data is not None:
+        raw = json.dumps(data, ensure_ascii=False).encode("utf-8")
+
+    request = Request(
+        url,
+        data=raw,
+        headers=headers,
+        method=method,
+    )
+
+    try:
+        with urlopen(request, timeout=25) as response:
+            result = response.read()
+
+        if not result:
+            return []
+
+        parsed = json.loads(result.decode("utf-8"))
+
+        if not isinstance(parsed, list):
+            raise DatabaseError("database_invalid_response")
+
+        return parsed
+
+    except HTTPError as error:
+        # 只记录状态码，不输出密钥或问卷答案。
+        print(
+            "Supabase 请求失败，HTTP 状态码：",
+            error.code,
+            flush=True,
         )
-    """)
+        raise DatabaseError("database_unavailable") from None
 
-SESSIONS = {}
-LOCK = threading.Lock()
+    except (URLError, TimeoutError, OSError):
+        print("Supabase 连接失败，请检查环境变量与数据库状态。", flush=True)
+        raise DatabaseError("database_unavailable") from None
+
+    except (ValueError, UnicodeDecodeError):
+        raise DatabaseError("database_invalid_response") from None
+
+
+def find_response(request_id):
+    rows = database_request(
+        params={
+            "select": "id,language,answers",
+            "request_id": "eq." + request_id,
+            "limit": "1",
+        }
+    )
+    return rows[0] if rows else None
+
+
+def save_response(request_id, language, answers):
+    # request_id 唯一，网络失败后的重复提交不会重复保存。
+    database_request(
+        method="POST",
+        params={"on_conflict": "request_id"},
+        data={
+            "request_id": request_id,
+            "language": language,
+            "answers": answers,
+        },
+        prefer="resolution=ignore-duplicates,return=minimal",
+    )
+
+    saved = find_response(request_id)
+
+    if saved is None:
+        raise DatabaseError("database_save_failed")
+
+    if saved["language"] != language or saved["answers"] != answers:
+        raise ValueError("request_id_conflict")
+
+    return saved["id"]
+
+
+def load_responses():
+    # 按 ID 分批读取，避免超过单次返回条数后漏掉答案。
+    results = []
+    before_id = None
+
+    while True:
+        params = {
+            "select": "id,created_at,language,answers",
+            "order": "id.desc",
+            "limit": "500",
+        }
+
+        if before_id is not None:
+            params["id"] = "lt." + str(before_id)
+
+        batch = database_request(params=params)
+
+        if not batch:
+            break
+
+        results.extend(
+            {
+                "id": row["id"],
+                "createdAt": row["created_at"],
+                "language": row["language"],
+                "answers": row["answers"],
+            }
+            for row in batch
+        )
+
+        next_id = batch[-1]["id"]
+
+        if before_id is not None and next_id >= before_id:
+            raise DatabaseError("database_pagination_failed")
+
+        before_id = next_id
+
+    return results
 
 
 def validate(answers):
@@ -387,7 +505,7 @@ def validate(answers):
 
     for q in QUESTIONS:
         value = answers[q["id"]]
-        codes = {o["code"] for o in q["options"]}
+        codes = {option["code"] for option in q["options"]}
 
         if q["multi"]:
             if (
@@ -412,7 +530,21 @@ def validate(answers):
     return clean
 
 
+def remove_expired_sessions():
+    now = time.time()
+    expired = [
+        token for token, expiry in SESSIONS.items()
+        if expiry <= now
+    ]
+    for token in expired:
+        del SESSIONS[token]
+
+
 class Handler(BaseHTTPRequestHandler):
+    def setup(self):
+        super().setup()
+        self.connection.settimeout(40)
+
     def send_json(self, status, data):
         raw = json.dumps(data, ensure_ascii=False).encode("utf-8")
         self.send_response(status)
@@ -442,64 +574,73 @@ class Handler(BaseHTTPRequestHandler):
         if not auth.startswith("Bearer "):
             return False
 
-        token = auth[7:]
-        current = time.time()
-
         with LOCK:
-            expired = [k for k, v in SESSIONS.items() if v <= current]
-            for k in expired:
-                del SESSIONS[k]
-            return SESSIONS.get(token, 0) > current
+            remove_expired_sessions()
+            return SESSIONS.get(auth[7:], 0) > time.time()
+
+    def do_HEAD(self):
+        path = urlparse(self.path).path
+        if path in ("/", "/index.html", "/health"):
+            self.send_response(200)
+        else:
+            self.send_response(404)
+        self.end_headers()
 
     def do_GET(self):
         path = urlparse(self.path).path
 
-        if path == "/api/questions":
-            return self.send_json(200, {
-                "version": 3,
-                "questions": QUESTIONS
-            })
+        try:
+            if path == "/health":
+                return self.send_json(200, {"ok": True})
 
-        if path == "/api/responses":
-            if not self.admin():
-                return self.send_json(401, {"error": "unauthorized"})
-
-            with connect() as con:
-                rows = con.execute(
-                    "SELECT * FROM responses_v3 ORDER BY id DESC"
-                ).fetchall()
-
-            return self.send_json(200, {
-                "responses": [
-                    {
-                        "id": r["id"],
-                        "createdAt": r["created_at"],
-                        "language": r["language"],
-                        "answers": json.loads(r["answers"]),
-                    }
-                    for r in rows
-                ]
-            })
-
-        if path in ("/", "/index.html"):
-            try:
-                raw = (ROOT / "index.html").read_bytes()
-            except OSError:
-                return self.send_json(500, {
-                    "error": "index.html not found beside server.py"
+            if path == "/api/questions":
+                return self.send_json(200, {
+                    "version": 3,
+                    "questions": QUESTIONS,
                 })
 
-            self.send_response(200)
-            self.send_header("Content-Type", "text/html; charset=utf-8")
-            self.send_header("Content-Length", str(len(raw)))
-            self.send_header("Cache-Control", "no-store")
-            self.send_header("X-Content-Type-Options", "nosniff")
-            self.send_header("X-Frame-Options", "DENY")
-            self.end_headers()
-            self.wfile.write(raw)
-            return
+            if path == "/api/responses":
+                if not self.admin():
+                    return self.send_json(401, {
+                        "error": "unauthorized"
+                    })
 
-        self.send_json(404, {"error": "not_found"})
+                return self.send_json(200, {
+                    "responses": load_responses()
+                })
+
+            if path in ("/", "/index.html"):
+                try:
+                    raw = (ROOT / "index.html").read_bytes()
+                except OSError:
+                    return self.send_json(500, {
+                        "error": "index.html not found beside server.py"
+                    })
+
+                self.send_response(200)
+                self.send_header(
+                    "Content-Type",
+                    "text/html; charset=utf-8",
+                )
+                self.send_header("Content-Length", str(len(raw)))
+                self.send_header("Cache-Control", "no-store")
+                self.send_header("X-Content-Type-Options", "nosniff")
+                self.send_header("X-Frame-Options", "DENY")
+                self.end_headers()
+                self.wfile.write(raw)
+                return
+
+            return self.send_json(404, {"error": "not_found"})
+
+        except DatabaseError:
+            return self.send_json(503, {
+                "error": "database_unavailable"
+            })
+        except (BrokenPipeError, ConnectionResetError):
+            return
+        except Exception:
+            print("读取请求处理失败。", flush=True)
+            return self.send_json(500, {"error": "server_error"})
 
     def do_POST(self):
         path = urlparse(self.path).path
@@ -515,7 +656,7 @@ class Handler(BaseHTTPRequestHandler):
 
                 if not secrets.compare_digest(
                     supplied.encode("utf-8"),
-                    PASSWORD.encode("utf-8")
+                    PASSWORD.encode("utf-8"),
                 ):
                     return self.send_json(401, {
                         "error": "wrong_password"
@@ -524,6 +665,7 @@ class Handler(BaseHTTPRequestHandler):
                 token = secrets.token_urlsafe(32)
 
                 with LOCK:
+                    remove_expired_sessions()
                     SESSIONS[token] = time.time() + 8 * 3600
 
                 return self.send_json(200, {"token": token})
@@ -546,86 +688,109 @@ class Handler(BaseHTTPRequestHandler):
                 if language not in ("zh", "ko"):
                     raise ValueError("invalid_language")
 
-                rid = body.get("requestId", "")
+                request_id = body.get("requestId", "")
+
+                allowed = (
+                    "abcdefghijklmnopqrstuvwxyz"
+                    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                    "0123456789-_"
+                )
 
                 if (
-                    not isinstance(rid, str)
-                    or not 16 <= len(rid) <= 100
-                    or any(
-                        c not in
-                        "abcdefghijklmnopqrstuvwxyz"
-                        "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"
-                        for c in rid
-                    )
+                    not isinstance(request_id, str)
+                    or not 16 <= len(request_id) <= 100
+                    or any(c not in allowed for c in request_id)
                 ):
                     raise ValueError("invalid_request_id")
 
                 answers = validate(body.get("answers"))
-                created = datetime.now(timezone.utc).isoformat()
 
-                with connect() as con:
-                    existing = con.execute(
-                        "SELECT id, language, answers FROM responses_v3 "
-                        "WHERE request_id=?",
-                        (rid,)
-                    ).fetchone()
-
-                    encoded = json.dumps(answers, ensure_ascii=False)
-
-                    if existing:
-                        if (
-                            json.loads(existing["answers"]) != answers
-                            or existing["language"] != language
-                        ):
-                            return self.send_json(409, {
-                                "error": "request_id_conflict"
-                            })
-                        saved_id = existing["id"]
-                    else:
-                        con.execute("""
-                            INSERT OR IGNORE INTO responses_v3
-                            (request_id, created_at, language, answers)
-                            VALUES (?, ?, ?, ?)
-                        """, (rid, created, language, encoded))
-
-                        saved = con.execute(
-                            "SELECT id, language, answers FROM responses_v3 "
-                            "WHERE request_id=?",
-                            (rid,)
-                        ).fetchone()
-
-                        if (
-                            json.loads(saved["answers"]) != answers
-                            or saved["language"] != language
-                        ):
-                            return self.send_json(409, {
-                                "error": "request_id_conflict"
-                            })
-
-                        saved_id = saved["id"]
+                try:
+                    saved_id = save_response(
+                        request_id,
+                        language,
+                        answers,
+                    )
+                except ValueError as error:
+                    if str(error) == "request_id_conflict":
+                        return self.send_json(409, {
+                            "error": "request_id_conflict"
+                        })
+                    raise
 
                 return self.send_json(200, {
                     "ok": True,
-                    "id": saved_id
+                    "id": saved_id,
                 })
 
             return self.send_json(404, {"error": "not_found"})
 
+        except DatabaseError:
+            return self.send_json(503, {
+                "error": "database_unavailable"
+            })
         except (ValueError, TypeError, UnicodeDecodeError) as error:
             return self.send_json(400, {"error": str(error)})
+        except (BrokenPipeError, ConnectionResetError):
+            return
         except Exception:
+            print("提交请求处理失败。", flush=True)
             return self.send_json(500, {"error": "server_error"})
 
     def log_message(self, format, *args):
+        # 不在日志里记录填写内容、密码或令牌。
         pass
 
 
-if __name__ == "__main__":
-    print(f"新版18题问卷（工作时长版）：http://127.0.0.1:{PORT}")
-    print(f"研究者统计：http://127.0.0.1:{PORT}/#results")
-    print("运行期间不要修改文件夹名称。按 Control+C 停止。")
+def check_configuration():
+    if len(PASSWORD) < 12:
+        raise SystemExit(
+            "请在 Render 环境变量中设置至少12位的 "
+            "SURVEY_ADMIN_PASSWORD"
+        )
 
-    ThreadingHTTPServer(
-        ("0.0.0.0", PORT),
-        Handler
-    ).serve_forever()
+    parsed = urlparse(SUPABASE_URL)
+
+    if (
+        parsed.scheme != "https"
+        or not parsed.hostname
+        or not parsed.hostname.endswith(".supabase.co")
+        or parsed.username
+        or parsed.password
+        or parsed.port not in (None, 443)
+        or parsed.path not in ("", "/")
+        or parsed.query
+        or parsed.fragment
+    ):
+        raise SystemExit(
+            "SUPABASE_URL 格式不正确，"
+            "请填写项目首页的完整 https://项目编号.supabase.co 地址。"
+        )
+
+    if not SUPABASE_SECRET_KEY.startswith("sb_secret_"):
+        raise SystemExit(
+            "请在 SUPABASE_SECRET_KEY 中填写 "
+            "Supabase Secret keys 里的 sb_secret_ 开头密钥。"
+        )
+
+    if not (ROOT / "index.html").is_file():
+        raise SystemExit(
+            "找不到 index.html，"
+            "请确保 index.html 与 server.py 在同一个文件夹。"
+        )
+
+
+if __name__ == "__main__":
+    check_configuration()
+
+    print("问卷后台已启动，答案保存到 Supabase。", flush=True)
+    print("监听端口：" + str(PORT), flush=True)
+
+    server = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
+
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print("\n服务已停止。", flush=True)
+    finally:
+        server.server_close()
