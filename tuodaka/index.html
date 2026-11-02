@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#fffdf7">
+  <title>11月 · 12月打卡日历</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    :root {
+      font-family:
+        "PingFang SC", "Microsoft YaHei",
+        system-ui, sans-serif;
+      color: #57554f;
+      background: #fffdf7;
+      font-synthesis: none;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 48px 24px 60px;
+      background:
+        radial-gradient(circle at 5% 5%, #fff3cb 0, transparent 28%),
+        radial-gradient(circle at 95% 90%, #e6f3fc 0, transparent 30%),
+        #fffdf7;
+    }
+
+    .page {
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+
+    .page-header {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+
+    .eyebrow {
+      margin: 0 0 12px;
+      color: #a5a093;
+      font-size: 12px;
+      letter-spacing: 4px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(24px, 4vw, 34px);
+      font-weight: 600;
+      letter-spacing: 3px;
+    }
+
+    .description {
+      margin: 14px 0 0;
+      color: #999486;
+      font-size: 13px;
+      line-height: 1.8;
+    }
+
+    .calendars {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 28px;
+    }
+
+    .calendar {
+      --accent: #f8df94;
+      --accent-light: #fff9e8;
+      --accent-dark: #89703c;
+      --border: #eee6ce;
+      --shadow: #e8cf8333;
+
+      padding: 28px;
+      border: 1px solid var(--border);
+      border-radius: 26px;
+      background: #ffffffed;
+      box-shadow: 0 8px 28px var(--shadow);
+    }
+
+    .calendar.blue {
+      --accent: #b9def4;
+      --accent-light: #f0f8fd;
+      --accent-dark: #4e7b98;
+      --border: #dceaf2;
+      --shadow: #b7d7eb33;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .category {
+      display: inline-block;
+      margin-bottom: 10px;
+      padding: 6px 12px;
+      border-radius: 30px;
+      background: var(--accent-light);
+      color: var(--accent-dark);
+      font-size: 12px;
+      letter-spacing: 2px;
+    }
+
+    .month-title {
+      margin: 0;
+      font-size: 27px;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+
+    .year {
+      margin-left: 8px;
+      color: #aaa497;
+      font-size: 13px;
+      font-weight: 400;
+      letter-spacing: 2px;
+    }
+
+    .decoration {
+      display: grid;
+      place-items: center;
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: var(--accent-light);
+      color: var(--accent-dark);
+      font-size: 26px;
+    }
+
+    .weekdays,
+    .days {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 9px;
+    }
+
+    .weekdays {
+      margin-bottom: 12px;
+    }
+
+    .weekday {
+      text-align: center;
+      font-size: 11px;
+      color: #aaa59b;
+      line-height: 26px;
+    }
+
+    .weekday:first-child,
+    .weekday:last-child {
+      color: var(--accent-dark);
+    }
+
+    .day,
+    .empty {
+      width: 100%;
+      aspect-ratio: 1;
+      min-width: 0;
+    }
+
+    .day {
+      position: relative;
+      display: grid;
+      place-items: center;
+      padding: 0;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      background: transparent;
+      color: #8e897f;
+      font: inherit;
+      font-size: 14px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      transition:
+        background-color 180ms ease,
+        color 180ms ease,
+        border-color 180ms ease,
+        transform 180ms ease,
+        box-shadow 180ms ease;
+    }
+
+    @media (hover: hover) {
+      .day:hover {
+        background: var(--accent-light);
+        transform: translateY(-2px);
+      }
+    }
+
+    .day:active {
+      transform: scale(0.92);
+    }
+
+    .day:focus-visible {
+      outline: 2px solid var(--accent-dark);
+      outline-offset: 3px;
+    }
+
+    .day.checked,
+    .day.checked:hover {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: var(--accent-dark);
+      font-weight: 600;
+      box-shadow: 0 3px 8px var(--shadow);
+    }
+
+    .card-footer {
+      margin-top: 24px;
+      padding-top: 17px;
+      border-top: 1px dashed var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      font-size: 12px;
+    }
+
+    .count {
+      color: var(--accent-dark);
+    }
+
+    .count strong {
+      font-size: 17px;
+      margin: 0 3px;
+      font-weight: 600;
+    }
+
+    .hint {
+      color: #b1aba0;
+      font-size: 11px;
+    }
+
+    .page-footer {
+      text-align: center;
+      margin-top: 30px;
+      font-size: 12px;
+      color: #aaa497;
+      line-height: 1.8;
+    }
+
+    .storage-message {
+      min-height: 20px;
+      margin: 10px 0 0;
+      text-align: center;
+      font-size: 12px;
+      color: #a57859;
+    }
+
+    @media (max-width: 680px) {
+      body {
+        padding: 32px 16px 40px;
+      }
+
+      .calendars {
+        grid-template-columns: 1fr;
+        gap: 22px;
+      }
+
+      .calendar {
+        padding: 24px;
+      }
+
+      .page-header {
+        margin-bottom: 26px;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .calendar {
+        padding: 20px 16px;
+      }
+
+      .weekdays,
+      .days {
+        gap: 7px;
+      }
+
+      .day {
+        font-size: 13px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .day {
+        transition: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="page">
+    <header class="page-header">
+      <p class="eyebrow">MY LITTLE ROUTINE</p>
+      <h1>每天留下一点小记录</h1>
+      <p class="description">
+        2026年11月 · 12月<br>
+        点击日期打卡，再点一次即可取消
+      </p>
+    </header>
+
+    <section
+      class="calendars"
+      id="calendars"
+      aria-label="运动与脱毛仪打卡日历"
+    ></section>
+
+    <footer class="page-footer">
+      慢慢来，按照自己的节奏就好 ♡<br>
+      记录自动保存在当前设备的浏览器中
+    </footer>
+
+    <p
+      class="storage-message"
+      id="storage-message"
+      role="status"
+      aria-live="polite"
+    ></p>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "my-checkin-calendar-2026-v1";
+
+    const calendarSettings = [
+      {
+        year: 2026,
+        month: 11,
+        category: "脱毛仪",
+        type: "hair-removal",
+        theme: "yellow",
+        symbol: "✦"
+      },
+      {
+        year: 2026,
+        month: 11,
+        category: "运动",
+        type: "exercise",
+        theme: "blue",
+        symbol: "♡"
+      },
+      {
+        year: 2026,
+        month: 12,
+        category: "脱毛仪",
+        type: "hair-removal",
+        theme: "yellow",
+        symbol: "✦"
+      },
+      {
+        year: 2026,
+        month: 12,
+        category: "运动",
+        type: "exercise",
+        theme: "blue",
+        symbol: "♡"
+      }
+    ];
+
+    const weekdayNames = ["日", "一", "二", "三", "四", "五", "六"];
+    const calendarsContainer = document.getElementById("calendars");
+    const storageMessage = document.getElementById("storage-message");
+
+    let records = loadRecords();
+
+    function loadRecords() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        const parsed = saved ? JSON.parse(saved) : {};
+
+        if (
+          parsed &&
+          typeof parsed === "object" &&
+          !Array.isArray(parsed)
+        ) {
+          return parsed;
+        }
+
+        return {};
+      } catch (error) {
+        storageMessage.textContent =
+          "当前浏览器暂时无法读取记录，本次仍可正常点击打卡。";
+        return {};
+      }
+    }
+
+    function saveRecords() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+        storageMessage.textContent = "";
+      } catch (error) {
+        storageMessage.textContent =
+          "当前浏览器无法保存记录，关闭页面后本次打卡可能丢失。";
+      }
+    }
+
+    function getRecordKey(setting, day) {
+      const month = String(setting.month).padStart(2, "0");
+      const date = String(day).padStart(2, "0");
+
+      return `${setting.type}-${setting.year}-${month}-${date}`;
+    }
+
+    function createCalendar(setting, index) {
+      const firstWeekday = new Date(
+        setting.year,
+        setting.month - 1,
+        1
+      ).getDay();
+
+      const daysInMonth = new Date(
+        setting.year,
+        setting.month,
+        0
+      ).getDate();
+
+      const card = document.createElement("article");
+      card.className = `calendar ${setting.theme}`;
+      card.setAttribute("aria-labelledby", `month-title-${index}`);
+
+      card.innerHTML = `
+        <header class="card-header">
+          <div>
+            <span class="category">${setting.category}</span>
+            <h2 class="month-title" id="month-title-${index}">
+              ${setting.month}月
+              <span class="year">${setting.year}</span>
+            </h2>
+          </div>
+          <span class="decoration" aria-hidden="true">
+            ${setting.symbol}
+          </span>
+        </header>
+
+        <div class="weekdays" aria-hidden="true">
+          ${weekdayNames
+            .map(name => `<span class="weekday">${name}</span>`)
+            .join("")}
+        </div>
+
+        <div class="days"></div>
+
+        <div class="card-footer">
+          <span class="count" role="status" aria-live="polite">
+            已打卡 <strong>0</strong> 天
+          </span>
+          <span class="hint">点亮属于你的一天</span>
+        </div>
+      `;
+
+      const daysContainer = card.querySelector(".days");
+      const countNumber = card.querySelector(".count strong");
+
+      function updateCount() {
+        let count = 0;
+
+        for (let day = 1; day <= daysInMonth; day++) {
+          if (records[getRecordKey(setting, day)] === true) {
+            count++;
+          }
+        }
+
+        countNumber.textContent = count;
+      }
+
+      // 月初留空，使日期与星期正确对齐。
+      for (let i = 0; i < firstWeekday; i++) {
+        const empty = document.createElement("span");
+        empty.className = "empty";
+        empty.setAttribute("aria-hidden", "true");
+        daysContainer.appendChild(empty);
+      }
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const button = document.createElement("button");
+        const key = getRecordKey(setting, day);
+        const weekday = new Date(
+          setting.year,
+          setting.month - 1,
+          day
+        ).getDay();
+
+        button.type = "button";
+        button.className = "day";
+        button.textContent = day;
+
+        button.setAttribute(
+          "aria-label",
+          `${setting.year}年${setting.month}月${day}日，` +
+          `星期${weekdayNames[weekday]}，${setting.category}打卡`
+        );
+
+        function updateButton() {
+          const checked = records[key] === true;
+
+          button.classList.toggle("checked", checked);
+          button.setAttribute("aria-pressed", String(checked));
+          button.title = checked ? "点击取消打卡" : "点击打卡";
+        }
+
+        button.addEventListener("click", () => {
+          if (records[key] === true) {
+            delete records[key];
+          } else {
+            records[key] = true;
+          }
+
+          updateButton();
+          updateCount();
+          saveRecords();
+        });
+
+        updateButton();
+        daysContainer.appendChild(button);
+      }
+
+      // 月末补齐空位，让整张日历保持规整。
+      const totalCells = firstWeekday + daysInMonth;
+      const trailingCells = (7 - (totalCells % 7)) % 7;
+
+      for (let i = 0; i < trailingCells; i++) {
+        const empty = document.createElement("span");
+        empty.className = "empty";
+        empty.setAttribute("aria-hidden", "true");
+        daysContainer.appendChild(empty);
+      }
+
+      updateCount();
+      calendarsContainer.appendChild(card);
+    }
+
+    calendarSettings.forEach(createCalendar);
+  </script>
+</body>
+</html>
